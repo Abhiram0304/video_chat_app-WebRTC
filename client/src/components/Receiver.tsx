@@ -4,7 +4,8 @@ const Receiver = () => {
 
     const [socket, setSocket] = useState<WebSocket | null>(null);
     const videoRef = useRef<HTMLVideoElement | null>(null);
-    const [pc, setPc] = useState<RTCPeerConnection | null>(null);
+    const remoteVideoRef = useRef<HTMLVideoElement | null>(null);
+    const pcRef = useRef<RTCPeerConnection | null>(null);
 
     useEffect(() => {
         const socket = new WebSocket('ws://localhost:8080');
@@ -15,10 +16,12 @@ const Receiver = () => {
 
         socket.onmessage = async (event) => {
             const message = JSON.parse(event.data);
-            const pc = new RTCPeerConnection();
-            setPc(pc);
+            const pc = pcRef.current;
+        
             if(message.type === 'create-offer'){
-                pc.setRemoteDescription(message.sdp);
+                const pc = new RTCPeerConnection();
+                pcRef.current = pc;
+
                 pc.onicecandidate = (event) => {
                     if(event.candidate){
                         socket.send(JSON.stringify({ type: "add-ice-candidate", candidate: event.candidate }));
@@ -26,21 +29,30 @@ const Receiver = () => {
                 }
 
                 pc.ontrack = (event) => {
-                    console.log("TRACK", event);
-                    if(videoRef.current){
-                        console.log("HERE", event.track);
-                        videoRef.current.srcObject = new MediaStream([event.track]);
-                        videoRef.current.play();
+                    if(remoteVideoRef.current){
+                        const remoteStream = remoteVideoRef.current.srcObject as MediaStream || new MediaStream();
+                        remoteStream.addTrack(event.track);
+                        remoteVideoRef.current.srcObject = remoteStream;
+                        remoteVideoRef.current.play();
                     }
                 }
 
+                const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+                pc.addTrack(stream.getVideoTracks()[0]);
+
+                if(videoRef.current){
+                    videoRef.current.srcObject = stream;
+                    videoRef.current.play();
+                }
+
+                await pc.setRemoteDescription(message.sdp);
                 const answer = await pc.createAnswer();
                 pc.setLocalDescription(answer);
                 if(socket){
                     socket.send(JSON.stringify({ type : "create-answer", sdp : answer}));
                 }
             }else if(message.type === "add-ice-candidate"){
-                pc.addIceCandidate(message.candidate);
+                pc?.addIceCandidate(message.candidate);
             }
         }
     }, []);
@@ -49,6 +61,7 @@ const Receiver = () => {
     <div>
         Receiver
         <video ref={videoRef} autoPlay playsInline muted ></video>
+        <video ref={remoteVideoRef} autoPlay playsInline muted></video>
     </div>
   )
 }
