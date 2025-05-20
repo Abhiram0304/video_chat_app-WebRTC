@@ -8,7 +8,8 @@ const Sender = () => {
     const pcRef = useRef<RTCPeerConnection | null>(null);
 
     useEffect(() => {
-        const socket = new WebSocket('ws://localhost:8080');
+        const socket = new WebSocket('wss://video-chat-app-webrtc-gepv.onrender.com');
+        // const socket = new WebSocket('ws://localhost:8080');
         setSocket(socket);
         socket.onopen = () => {
             socket.send(JSON.stringify({ type : 'this-is-sender'}));
