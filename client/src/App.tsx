@@ -2,11 +2,13 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import './App.css'
 import Sender from './components/Sender'
 import Receiver from './components/Receiver'
+import Home from './components/Home'
 
 function App() {
   return (
     <BrowserRouter>
       <Routes>
+        <Route path="/" element={<Home />} />
         <Route path="/sender" element={<Sender />} />
         <Route path="/receiver" element={<Receiver />} />
       </Routes>
