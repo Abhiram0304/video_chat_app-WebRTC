@@ -33,8 +33,9 @@ const Sender = () => {
         const pc = new RTCPeerConnection();
         pcRef.current = pc;
         
-        const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
         pc.addTrack(stream.getVideoTracks()[0]);
+        pc.addTrack(stream.getAudioTracks()[0]);
 
         if(videoRef.current){
             videoRef.current.srcObject = stream;
@@ -70,9 +71,7 @@ const Sender = () => {
             }else if(message.type === 'add-ice-candidate'){
                 pc.addIceCandidate(message.candidate);
             }
-        }
-
-        
+        }  
     }
 
   return (
@@ -81,7 +80,7 @@ const Sender = () => {
         <button onClick={startSendingVideo}>
             Send Video
         </button>
-        <video ref={videoRef} autoPlay playsInline muted></video>
+        <video ref={videoRef} autoPlay playsInline></video>
         <video ref={remoteVideoRef} autoPlay playsInline></video>
     </div>
   )

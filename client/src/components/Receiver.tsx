@@ -38,8 +38,9 @@ const Receiver = () => {
                     }
                 }
 
-                const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+                const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
                 pc.addTrack(stream.getVideoTracks()[0]);
+                pc.addTrack(stream.getAudioTracks()[0]);
 
                 if(videoRef.current){
                     videoRef.current.srcObject = stream;
@@ -61,8 +62,8 @@ const Receiver = () => {
   return (
     <div>
         Receiver
-        <video ref={videoRef} autoPlay playsInline muted ></video>
-        <video ref={remoteVideoRef} autoPlay playsInline muted></video>
+        <video ref={videoRef} autoPlay playsInline ></video>
+        <video ref={remoteVideoRef} autoPlay playsInline></video>
     </div>
   )
 }
